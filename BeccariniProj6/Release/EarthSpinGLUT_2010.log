@@ -1,0 +1,16 @@
+﻿  main.cpp
+c:\users\student\desktop\openal and open haptics sample final (4)\openal and open haptics sample final\src\main.cpp(292): warning C4838: conversion from 'T' to 'ALfloat' requires a narrowing conversion
+          with
+          [
+              T=HDdouble
+          ]
+  Generating code
+  21 of 101 functions (20.8%) were compiled, the rest were copied from previous compilation.
+    0 functions were new in current compilation
+    0 functions had inline decision re-evaluated but remain unchanged
+  Finished generating code
+hdu.lib(hduAfx.obj) : warning LNK4099: PDB 'HDU.pdb' was not found with 'hdu.lib(hduAfx.obj)' or at 'C:\Users\student\Desktop\OpenAL and Open Haptics Sample Final (4)\OpenAL and Open Haptics Sample Final\Release\HDU.pdb'; linking object as if no debug info
+hdu.lib(hduLine.obj) : warning LNK4099: PDB 'HDU.pdb' was not found with 'hdu.lib(hduLine.obj)' or at 'C:\Users\student\Desktop\OpenAL and Open Haptics Sample Final (4)\OpenAL and Open Haptics Sample Final\Release\HDU.pdb'; linking object as if no debug info
+hdu.lib(hduLineSegment.obj) : warning LNK4099: PDB 'HDU.pdb' was not found with 'hdu.lib(hduLineSegment.obj)' or at 'C:\Users\student\Desktop\OpenAL and Open Haptics Sample Final (4)\OpenAL and Open Haptics Sample Final\Release\HDU.pdb'; linking object as if no debug info
+hdu.lib(hduQuaternion.obj) : warning LNK4099: PDB 'HDU.pdb' was not found with 'hdu.lib(hduQuaternion.obj)' or at 'C:\Users\student\Desktop\OpenAL and Open Haptics Sample Final (4)\OpenAL and Open Haptics Sample Final\Release\HDU.pdb'; linking object as if no debug info
+  EarthSpinGLUT_2010.vcxproj -> C:\Users\student\Desktop\OpenAL and Open Haptics Sample Final (4)\OpenAL and Open Haptics Sample Final\Release\EarthSpinGLUT.exe

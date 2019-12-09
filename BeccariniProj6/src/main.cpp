@@ -57,7 +57,7 @@ TriMesh* Hammer = NULL;
 
 int changeCursor;
 
-/*
+
 TriMesh* FemoreCut;// = NULL;
 TriMesh* FemorePezzoAlto;// = NULL;
 TriMesh* FemorePezzoBasso;// = NULL;
@@ -74,12 +74,15 @@ TriMesh* ProtesiSopraNonSistemata;// = NULL;
 TriMesh* ProtesiSopraSistemata;// = NULL;
 TriMesh* ProtesiSottoNonSistemata;// = NULL;
 TriMesh* ProtesiSottoSistemata;// = NULL;
-TriMesh* RotolaNonCut;// = NULL;
+TriMesh* RotulaNonCut;// = NULL;
 TriMesh* TibPerCut;// = NULL;
-TriMesh* TibPerNonCut;// = NULL;*/
+TriMesh* TibPerNonCut;// = NULL;
 
+static int punteggio = 0;
+static int femore = 0;
+static int ok = 0;
 
-	// Properties that can affect the sound in 3D space
+// Properties that can affect the sound in 3D space
 //ALfloat SourcePos[] = { 0.0,0.0,0.0 };
 //ALfloat SourceVel[] = { 0.0,0.0,0.0 };
 //ALfloat ListenerPos[] = { 0.0,0.0,-3.0 };
@@ -103,7 +106,7 @@ void Button1Up_cb(unsigned int ShapeID);
 void myUnTouch(unsigned int ShapeID);
 void myTouchCallback(unsigned int ShapeID);
 void motionCallback1(unsigned int ShapeID);
-void Button2Up1(unsigned int ShapeID);
+void Button2Up_cb(unsigned int ShapeID);
 void Button2Down1(unsigned int ShapeID);
 void ChangeCursor(int changeCursor);
 
@@ -112,9 +115,10 @@ void ChangeCursor(int changeCursor);
 //static int iFb = 0;
 //static int iFs = 0;
 
-//bool draggingCassa;
-//bool draggingKidney1;
-//bool draggingKidney2;
+bool draggingProtesiSopra;
+bool draggingProtesiMedia;
+bool draggingProtesiSotto;
+bool draggingRotula;
 //bool flag;
 
 //static float fmag;
@@ -153,12 +157,15 @@ void ChangeCursor(int changeCursor);
 //static float F;
 //static hduVector3Dd Force;
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
 	DisplayObject = new QHGLUT(argc, argv);
 	Omni = new DeviceSpace;
 	DisplayObject->tell(Omni);
 	DisplayObject->setBackgroundColor(0.0, 0.0, 0.6);
+
+
+	//////////////////////////////// CURSORS PART //////////////////////////////////////
 
 	HandCursor = new Cursor("Modelli/Cursors/Mano.stl");
 	//HandCursor->scaleCursor(0.002);
@@ -173,7 +180,7 @@ int main(int argc, char *argv[])
 	Scalpel = ScalpelCursor->getTriMeshPointer();
 	//ScalpelCursor->debugCursor();
 	DisplayObject->tell(ScalpelCursor);
-	ScalpelCursor->setVisibility(false, false);
+	ScalpelCursor->setVisible(false, false);
 
 	DrillCursor = new Cursor("Modelli/Cursors/Drill.stl");
 	//DrillCursor->scaleCursor(0.002);
@@ -181,7 +188,7 @@ int main(int argc, char *argv[])
 	Drill = DrillCursor->getTriMeshPointer();
 	//DrillCursor->debugCursor();
 	DisplayObject->tell(DrillCursor);
-	DrillCursor->setVisibility(false, false);
+	DrillCursor->setVisible(false, false);
 
 	HammerCursor = new Cursor("Modelli/Cursors/Hammer.stl");
 	//HammerCursor->scaleCursor(0.002);
@@ -189,33 +196,163 @@ int main(int argc, char *argv[])
 	Hammer = HammerCursor->getTriMeshPointer();
 	//HammerCursor->debugCursor();
 	HammerCursor->tell(HammerCursor);
-	HammerCursor->setVisibility(false, false);
+	HammerCursor->setVisible(false, false);
+
+	////////////////////////////////// GENERAL SCENE ///////////////////////////////////////
+
+	GambaSingolaDritta = new TriMesh("Modelli/GambaSingolaDritta.stl"); //2
+	GambaSingolaDritta->setTexture("Modelli/Textures/Skin.jpg");
+	GambaSingolaDritta->setStiffness(0.5);
+	GambaSingolaDritta->setRenderModeFeedback();
+	GambaSingolaDritta->setUndraggable();
+	DisplayObject->tell(GambaSingolaDritta);
+
+	ProtesiSopraNonSistemata = new TriMesh("Modelli/ProtesiSopraNonSistemata.stl"); //3
+	ProtesiSopraNonSistemata->setTexture("Modelli/Textures/Titanium.jpg");
+	ProtesiSopraNonSistemata->setStiffness(1);
+	ProtesiSopraNonSistemata->setRenderModeFeedback();
+	DisplayObject->tell(ProtesiSopraNonSistemata);
+
+	ProtesiMediaNonSistemata = new TriMesh("Modelli/ProtesiMediaNonSistemata.stl");//4
+	ProtesiMediaNonSistemata->setTexture("Modelli/Textures/Silicone.jpg");
+	ProtesiMediaNonSistemata->setStiffness(0.8);
+	ProtesiMediaNonSistemata->setRenderModeFeedback();
+	DisplayObject->tell(ProtesiMediaNonSistemata);
+
+	ProtesiSottoNonSistemata = new TriMesh("Modelli/ProtesiSottoNonSistemata.stl");//5
+	ProtesiSottoNonSistemata->setTexture("Modelli/Textures/Titanium.jpg");
+	ProtesiSottoNonSistemata->setStiffness(1);
+	ProtesiSottoNonSistemata->setRenderModeFeedback();
+	DisplayObject->tell(ProtesiSottoNonSistemata);
+
+	GambaPiegataSemi = new TriMesh("Modelli/GambaPiegataSemi.stl");//6
+	GambaPiegataSemi->setTexture("Modelli/Textures/Skin.jpg");
+	GambaPiegataSemi->setStiffness(0.5);
+	GambaPiegataSemi->setRenderModeFeedback();
+	DisplayObject->tell(GambaPiegataSemi);
+	GambaPiegataSemi->setVisible(false, false);
+
+	GambaPiegataFinale = new TriMesh("Modelli/GambaPiegataFinale.stl");//7
+	GambaPiegataFinale->setTexture("Modelli/Textures/Skin.jpg");
+	GambaPiegataFinale->setStiffness(0.5);
+	GambaPiegataFinale->setRenderModeFeedback();
+	DisplayObject->tell(GambaPiegataFinale);
+	GambaPiegataFinale->setVisible(false, false);
+
+	GambaCut = new TriMesh("Modelli/GambaCut.stl");//8
+	GambaCut->setTexture("Modelli/Textures/Skin.jpg");
+	GambaCut->setStiffness(0.5);
+	GambaCut->setRenderModeFeedback();
+	DisplayObject->tell(GambaCut);
+	GambaCut->setVisible(false, false);
+
+	FemorePrinc = new TriMesh("Modelli/FemorePrinc.stl");//9
+	FemorePrinc->setTexture("Modelli/Textures/Bone.jpg");
+	FemorePrinc->setStiffness(1);
+	FemorePrinc->setRenderModeFeedback();
+	DisplayObject->tell(FemorePrinc);
+	FemorePrinc->setVisible(false, false);
+
+	FemorePezzoAlto = new TriMesh("Modelli/FemorePezzoAlto.stl");//10
+	FemorePezzoAlto->setTexture("Modelli/Textures/Bone.jpg");
+	FemorePezzoAlto->setStiffness(1);
+	FemorePezzoAlto->setRenderModeFeedback();
+	DisplayObject->tell(FemorePezzoAlto);
+	FemorePezzoAlto->setVisible(false, false);
+
+	FemorePezzoMedio = new TriMesh("Modelli/FemorePezzoMedio.stl");//11
+	FemorePezzoMedio->setTexture("Modelli/Textures/Bone.jpg");
+	FemorePezzoMedio->setStiffness(1);
+	FemorePezzoMedio->setRenderModeFeedback();
+	DisplayObject->tell(FemorePezzoMedio);
+	FemorePezzoMedio->setVisible(false, false);
+
+	FemorePezzoBasso = new TriMesh("Modelli/FemorePezzoBasso.stl");//12
+	FemorePezzoBasso->setTexture("Modelli/Textures/Bone.jpg");
+	FemorePezzoBasso->setStiffness(1);
+	FemorePezzoBasso->setRenderModeFeedback();
+	DisplayObject->tell(FemorePezzoBasso);
+	FemorePezzoBasso->setVisible(false, false);
+
+	FemoreCut = new TriMesh("Modelli/FemoreCut.stl");//13
+	FemoreCut->setTexture("Modelli/Textures/Bone.jpg");
+	FemoreCut->setStiffness(1);
+	FemoreCut->setRenderModeFeedback();
+	DisplayObject->tell(FemoreCut);
+	FemoreCut->setVisible(false, false);
+
+	TibPerNonCut = new TriMesh("Modelli/TibPerNonCut.stl");//14
+	TibPerNonCut->setTexture("Modelli/Textures/Bone.jpg");
+	TibPerNonCut->setStiffness(1);
+	TibPerNonCut->setRenderModeFeedback();
+	DisplayObject->tell(TibPerNonCut);
+	TibPerNonCut->setVisible(false, false);
+
+	RotulaNonCut = new TriMesh("Modelli/RotulaNonCut.stl");//15
+	RotulaNonCut->setTexture("Modelli/Textures/Bone.jpg");
+	RotulaNonCut->setStiffness(1);
+	RotulaNonCut->setRenderModeFeedback();
+	DisplayObject->tell(RotulaNonCut);
+	RotulaNonCut->setVisible(false, false);
+
+	TibPerCut = new TriMesh("Modelli/TibPerCut.stl");//16
+	TibPerCut->setTexture("Modelli/Textures/Bone.jpg");
+	TibPerCut->setStiffness(1);
+	TibPerCut->setRenderModeFeedback();
+	DisplayObject->tell(TibPerCut);
+	TibPerCut->setVisible(false, false);
+
+	ProtesiSopraSistemata = new TriMesh("Modelli/ProtesiSopraSistemata.stl");//17
+	ProtesiSopraSistemata->setTexture("Modelli/Textures/Titanium.jpg");
+	ProtesiSopraSistemata->setStiffness(1);
+	ProtesiSopraSistemata->setRenderModeFeedback();
+	DisplayObject->tell(ProtesiSopraSistemata);
+	ProtesiSopraSistemata->setVisible(false, false);
+
+	ProtesiSottoSistemata = new TriMesh("Modelli/ProtesiSottoSistemata.stl");//18
+	ProtesiSottoSistemata->setTexture("Modelli/Textures/Titanium.jpg");
+	ProtesiSottoSistemata->setStiffness(1);
+	ProtesiSottoSistemata->setRenderModeFeedback();
+	DisplayObject->tell(ProtesiSottoSistemata);
+	ProtesiSottoSistemata->setVisible(false, false);
+
+	OperazioneQuasiFinita = new TriMesh("Modelli/OperazioneQuasiFinita.stl");//19
+	OperazioneQuasiFinita->setTexture("Modelli/Textures/green.png");
+	OperazioneQuasiFinita->setStiffness(1);
+	OperazioneQuasiFinita->setRenderModeFeedback();
+	DisplayObject->tell(OperazioneQuasiFinita);
+	OperazioneQuasiFinita->setVisible(false, false);
+
+	ProtesiMediaSistemata = new TriMesh("Modelli/ProtesiMediaSistemata.stl");//20
+	ProtesiMediaSistemata->setTexture("Modelli/Textures/green.png");
+	ProtesiMediaSistemata->setStiffness(;
+	ProtesiMediaSistemata->setRenderModeFeedback();
+	DisplayObject->tell(ProtesiMediaSistemata);
+	ProtesiMediaSistemata->setVisible(false, false);
+
+
+	Omni->button2UpCallback(Button2Up_cb);
+	Omni->touchCallback(myTouchCallback, FemoreCut);
+	Omni->touchCallback(myTouchCallback, FemorePezzoAlto);
+	Omni->touchCallback(myTouchCallback, FemorePezzoBasso);
+	Omni->touchCallback(myTouchCallback, FemorePezzoMedio);
+	Omni->touchCallback(myTouchCallback, FemorePrinc);
+	Omni->touchCallback(myTouchCallback, GambaCut);
+	Omni->touchCallback(myTouchCallback, GambaPiegataFinale);
+	Omni->touchCallback(myTouchCallback, GambaPiegataSemi);
+	Omni->touchCallback(myTouchCallback, GambaSingolaDritta);
+	Omni->touchCallback(myTouchCallback, ProtesiMediaNonSistemata);
+	Omni->touchCallback(myTouchCallback, ProtesiSopraNonSistemata);
+	Omni->touchCallback(myTouchCallback, ProtesiSottoNonSistemata);
+	Omni->touchCallback(myTouchCallback, OperazioneQuasiFinita);
+	Omni->touchCallback(myTouchCallback, RotolaNonCut);
+	Omni->touchCallback(myTouchCallback, TibPerNonCut);
+	Omni->touchCallback(myTouchCallback, TibPerCut);
+	Omni->button1DownCallback(Button1Down_cb, ProtesiSopraNonSistemata);
+	Omni->button1DownCallback(Button1Down_cb, ProtesiMediaNonSistemata);
+	Omni->button1DownCallback(Button1Down_cb, ProtesiSottoNonSistemata);
 
 	/*
-	cassa = new TriMesh("models2/CassaFinaleSPERO.stl");
-	cassa->setTexture("models/bone.jpg");
-	cassa->setShapeColor(1.0, 1.0, 1.0);
-	cassa->setPopthrough(0.3);
-	cassa->setStiffness(1.0);
-	cassa->setRenderModeDepth();
-	cassa->setTranslation(0, 0, -500);
-	DisplayObject->tell(cassa);
-
-	kidney1 = new TriMesh("models2/kidney1max.stl");
-	kidney1->setRenderModeFeedback();
-	kidney1->setTranslation(0, 0, -500);
-	kidney1->setPopthrough(0.3,"Front");
-	kidney1->setShapeColor(0.7, 0.1, 0.1);
-	DisplayObject->tell(kidney1);
-
-	kidney2 = new TriMesh("models2/kidney2max.stl");
-	kidney2->setRenderModeFeedback();
-	kidney2->setPopthrough(0.3,"Front");
-	kidney2->setStiffness(0.1);
-	kidney2->setTranslation(0, 0, -500);
-	kidney2->setShapeColor(0.7, 0.1, 0.1);
-	DisplayObject->tell(kidney2);
-	kidney2->setTexture("models/kidney.png");
 
 	Box* B = new Box;
 	B->setTranslation(-2, -2, 50);
@@ -225,7 +362,7 @@ int main(int argc, char *argv[])
 	Omni->button1DownCallback(Button1Down_cb, cassa);
 	Omni->button1DownCallback(Button1Down_cb, kidney1);
 	Omni->button1DownCallback(Button1Down_cb, kidney2);*/
-	Omni->button1UpCallback(Button1Up_cb);
+
 	/*Omni->unTouchCallback(myUnTouch, cassa);
 	Omni->unTouchCallback(myUnTouch, kidney1);
 	Omni->unTouchCallback(myUnTouch, kidney2);
@@ -243,17 +380,17 @@ int main(int argc, char *argv[])
 	DisplayObject->preDrawCallback(Graphics_cb);
 
 	//***********************   REGARDING SOUND    ********************************//*/
-	
+
 	// Create an audio device
 	audioDevice = alcOpenDevice(NULL); // NULL refers to the default device connected to the computer
 	errorCode = alcGetError(audioDevice);
-    
+
 	// Create an audio context
 	// One context can have one Listner and Multiple Sources and Buffers
-	audioContext = alcCreateContext(audioDevice,NULL); 
-    alcMakeContextCurrent(audioContext);
-    errorCode = alcGetError(audioDevice);
-	
+	audioContext = alcCreateContext(audioDevice,NULL);
+	alcMakeContextCurrent(audioContext);
+	errorCode = alcGetError(audioDevice);
+
 	// Create a Buffer
 	alGenBuffers(1,&helloBuffer); // Buffer stores the audio data
 	errorCode = alGetError();
@@ -261,11 +398,11 @@ int main(int argc, char *argv[])
 	// Create a source
 	alGenSources (1, &helloSource); // Virtual source from which the sound is emitted in the application
 	errorCode = alGetError();
-	
+
 	// Read information about the WAVE file from the Object "File1" we created
 	frequency = File1.sampleRate;
 	// Find if file is stereo or mono
-	// Find if file is 8 or 16 bit 
+	// Find if file is 8 or 16 bit
 	if(File1.bitsPerSample == 8){
 		if (File1.channels == 1)
 			format = AL_FORMAT_MONO8;
@@ -290,7 +427,7 @@ int main(int argc, char *argv[])
 	alListenerfv(AL_POSITION, ListenerPos);
 	alListenerfv(AL_VELOCITY, ListenerVel);
 	alListenerfv(AL_ORIENTATION, ListenerOri);
-		
+
 	alSourcef (helloSource, AL_PITCH, 1.0);
 	alSourcef (helloSource, AL_GAIN, 10000.0);
 	alSourcefv (helloSource, AL_POSITION, SourcePos);
@@ -299,7 +436,7 @@ int main(int argc, char *argv[])
 
 	// Clear memory used by OpenAl by deleting everything created
 	/*
-	fclose(fp); 
+	fclose(fp);
 	delete[] buf;
 	alDeleteSources(1,&helloSource);
 	alDeleteBuffers(1,&helloBuffer);
@@ -308,11 +445,11 @@ int main(int argc, char *argv[])
 	alcCloseDevice(audioDevice);
 	*/
 	//  ******************************************************************************  //
-	
+
 	//Omni->startServoLoopCallback(startEffectCB, computeForceCB, stopEffectCB, NULL);
-	
-    qhStart();//Set everything in motion
-    return 0;
+
+	qhStart();//Set everything in motion
+	return 0;
 }
 
 /*void Graphics_cb() {
@@ -347,43 +484,40 @@ int main(int argc, char *argv[])
 
 }*/
 
-/*void Button1Down_cb(unsigned int ShapeID) {
+void Button1Down_cb(unsigned int ShapeID) {
 
 	TriMesh* modelTouched = TriMesh::searchTriMesh(ShapeID);
-	kidney2->setRotationInPlace(hduVector3Dd(1, 0, 0), 270);
-	kidney1->setRotationInPlace(hduVector3Dd(1, 0, 0), 270);
-	cassa->setRotationInPlace(hduVector3Dd(1, 0, 0), 270);
 
-	draggingCassa = false;
-	draggingKidney1 = false;
-	draggingKidney2 = false;
-	if (modelTouched == cassa) {
-		draggingCassa = true;
-		kidney1->setHapticVisibility(false);
-		kidney2->setHapticVisibility(false);
+	draggingProtesiSopra = false;
+	draggingProtesiMedia = false;
+	draggingProtesiSotto = false;
+	draggingRotula = false;
+
+	if (modelTouched == ProtesiSopraNonSistemata) {
+		draggingProtesiSopra = true;
+
 
 	}
-	if (modelTouched == kidney1) {
-		draggingKidney1 = true;
-		cassa->setHapticVisibility(false);
-		kidney2->setHapticVisibility(false);
+	else if (modelTouched == ProtesiMediaNonSistemata) {
+		draggingProtesiMedia = true;
 
 	}
-	else if (modelTouched == kidney2) {
-		draggingKidney2 = true;
-		cassa->setHapticVisibility(false);
-		kidney1->setHapticVisibility(false);
+	else if (modelTouched == ProtesiSottoNonSistemata) {
+		draggingProtesiSotto = true;
 
 	}
-}*/
+	else if (modelTouched == RotulaNonCut) {
+		draggingRotula == true;
+	}
+}
 
-void Button1Up_cb(unsigned int ShapeID) {
-	
+void Button2Up_cb(unsigned int ShapeID) {
+
 	changeCursor++;
 	if (changeCursor == 4)
 		changeCursor = 0;
 
-	ChangeCursor(changeCursor);
+	//ChangeCursor(changeCursor);
 
 
 }
@@ -403,7 +537,7 @@ void Button1Up_cb(unsigned int ShapeID) {
 			iPTf = 1;
 
 		}
-		else if ((Force.magnitude() < 1.5 || Force.magnitude() > 0.3)) //&& (Force.magnitude() > 0.1)) 
+		else if ((Force.magnitude() < 1.5 || Force.magnitude() > 0.3)) //&& (Force.magnitude() > 0.1))
 		{
 			cassa->setTouchableFace("Front");
 			//Omni->setFriction(0.0, 0.0); // gain and magnitude of friction
@@ -434,14 +568,99 @@ void Button1Up_cb(unsigned int ShapeID) {
 	}
 }*/
 
-/*
+
 void myTouchCallback(unsigned int ShapeID)
 {
-	if (ShapeID == 3)
-	{
-		alSourcef(helloSource, AL_PITCH, 1.0);
+	if ((ShapeID == 2) && (changeCursor == 0) && (ok == 0)) {  //GambaSingolaDritta shape ID 2 e cursore mano
+		GambaSingolaDritta->setVisible(false, false);
+		GambaPiegataSemi->setVisible(true, true);
+		punteggio++;
 	}
-}*/
+
+	else if ((ShapeID == 6) && (changeCursor == 0) && (ok == 0)) { //GambaSemiPiegata e mano
+		GambaPiegataSemi->setVisible(false, false);
+		GambaPiegataFinale->setVisible(true, true);
+		punteggio++;
+	}
+
+	else if ((ShapeID == 7) && (changeCursor == 1)) {  //GambaPiegataFinale e bisturi
+
+		GambaPiegataFinale->setVisible(false, false);
+		GambaCut->setVisible(true, true);
+		FemorePrinc->setVisible(true, true);
+		FemorePezzoAlto->setVisible(true, true);
+		FemorePezzoMedio->setVisible(true, true);
+		FemorePezzoBasso->setVisible(true, true);
+		TibPerNonCut->setVisible(true, true);
+		punteggio++;
+	}
+
+	else if ((ShapeID == 10) && (changeCursor == 2)) {
+		FemorePezzoAlto->setVisible(false, false);
+		punteggio++;
+		femore++;
+	}
+	else if ((ShapeID == 11) && (changeCursor == 2)) {
+		FemorePezzoMedio->setVisible(false, false);
+		punteggio++;
+		femore++;
+	}
+	else if ((ShapeID == 12) && (changeCursor == 2)) {
+		FemorePezzoBasso->setVisible(false, false);
+		punteggio++;
+		femore++;
+	}
+
+	else if ((ShapeID == 14) && (changeCursor == 2)) {
+		TibPerNonCut->setVisibile(false, false);
+		TibPerCut->setVisible(true, true);
+	}
+
+	else if ((draggingProtesiSopra == true) && (ShapeID == 13) && (changeCursor == 0)) {
+		ProtesiSopraNonSistemata->setTexture("Modelli/Textures/green.png");
+	}
+
+	else if ((draggingProtesiSopra == true) && (ShapeID == 13) && (changeCursor == 3)) {
+		ProtesiSopraNonSistemata->setVisible(false, false);
+		ProtesiSopraSistemata->setVisibile(true, true);
+		ok++;
+	}
+
+	else if ((draggingProtesiSotto == true) && (ShapeID == 16) && (changeCursor == 0)) {
+		ProtesiSottoNonSistemata->setTexture("Modelli/Textures/green.png");
+	}
+
+	else if ((draggingProtesiSotto == true) && (ShapeID == 16) && (changeCursor == 3)) {
+		ProtesiSottoNonSistemata->setVisible(false, false);
+		ProtesiSottoSistemata->setVisibile(true, true);
+		ok++;
+	}
+
+	else if (draggingRotula == true) {
+		//line effect for rotula;
+	}
+
+	else if ((ok == 2) && (ShapeID == 8) && (changeCursor == 0)) {
+		ProtesiSopraSistemata->setVisible(false, false);
+		ProtesiSottoSistemata->setVisible(false, false);
+		FemoreCut->setVisible(false, false);
+		TibPerCut->setVisible(false, false);
+		GambaCut->setVisible(false, false);
+		OperazioneQuasiFinita->setVisible(true, true);
+	}
+
+	else if ((draggingProtesiMedia == true) && (ShapeID == 19) && (changeCursor == 0)) {
+		ProtesiMediaNonSistemata->setVisible(false, false);
+		ProtesiMediaSistemata->setVisible(true, true);
+	}
+
+
+
+	if (femore == 3) {
+		FemorePrinc->setVisible(false, false);
+		FemoreCut->setVisible(true, true);
+	}
+}
 /*
 void motionCallback1(unsigned int ShapeID)
 {
@@ -476,7 +695,7 @@ void Button2Down1(unsigned int ShapeID)
 	{
 		iPTf = 0;
 		hlCacheGetDoublev(cache, HL_PROXY_POSITION, fulcrumPoint);
-		
+
 	}
 	if (iPTB == 1) //fulcrum effect for kidneys
 	{
@@ -586,8 +805,8 @@ void HLCALLBACK stopEffectCB(HLcache* cache, void* userData)
 	printf("a");
 }*/
 
-void ChangeCursor(int changeCursor) {
-		
+/*void ChangeCursor(int changeCursor) {
+
 	HandCursor->setVisibility(false, false);
 	ScalpelCursor->setVisibility(false, false);
 	DrillCursor->setVisibility(false, false);
@@ -597,12 +816,12 @@ void ChangeCursor(int changeCursor) {
 		HandCursor->setVisibility(true, true);
 
 	else if (changeCursor == 1)
-		ScalpelCursor->setVisibility(true, true); 
-	
+		ScalpelCursor->setVisibility(true, true);
+
 	else if (changeCursor == 2)
 		DrillCursor->setVisibility(true, true);
-	
+
 	else if (changeCursor == 3)
 		HammerCursor->setVisibility(true, true);
-}
+}*/
 
